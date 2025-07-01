@@ -1,32 +1,36 @@
 services:
   open-webui:
-    image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
+    image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
     environment:
-      - 'WEBUI_SECRET_KEY=your-secret-key-change-this'
-      - 'ENABLE_OLLAMA_API=false'
-      - 'ENABLE_OPENAI_API=true'
-      - 'OPENAI_API_BASE_URL=https://api.openai.com/v1'
-      - 'OPENAI_API_KEY='
-      - 'ENABLE_ANTHROPIC_API=true'
-      - 'ANTHROPIC_API_BASE_URL=https://api.anthropic.com'
-      - 'ANTHROPIC_API_KEY='
-      - 'ENABLE_CUSTOM_API=true'
+      - WEBUI_SECRET_KEY=your-secret-key-change-this
+      - ENABLE_OLLAMA_API=false
+      - ENABLE_OPENAI_API=true
+      - OPENAI_API_BASE_URL=https://api.openai.com/v1
+      - OPENAI_API_KEY=
+      - ENABLE_ANTHROPIC_API=true
+      - ANTHROPIC_API_BASE_URL=https://api.anthropic.com
+      - ANTHROPIC_API_KEY=
+      - ENABLE_CUSTOM_API=true
+      - PORT=8080
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
     networks:
       - dokploy-network
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.openwebui.rule=Host(`openwebui.australianteamasters.com.au`)"
-      - "traefik.http.routers.openwebui.entrypoints=websecure"
-      - "traefik.http.routers.openwebui.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.openwebui.tls.certresolver=letsencrypt"
-      - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.openwebui.rule=Host(`openwebui.australianteamasters.com.au`)
+      - traefik.http.routers.openwebui.entrypoints=websecure
+      - traefik.http.routers.openwebui.tls.certresolver=letsencrypt
+      - traefik.http.routers.openwebui-http.rule=Host(`openwebui.australianteamasters.com.au`)
+      - traefik.http.routers.openwebui-http.entrypoints=web
+      - traefik.http.routers.openwebui-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.services.openwebui.loadbalancer.server.port=8080
 
 volumes:
   open-webui: {}
