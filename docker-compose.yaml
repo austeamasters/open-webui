@@ -15,18 +15,11 @@ services:
       - ANTHROPIC_API_KEY=
       - ENABLE_CUSTOM_API=true
       - PORT=8080
-      # Critical WebSocket support environment variables
+      # Based on official docs - these are the only WebSocket vars needed
       - ENABLE_WEBSOCKET_SUPPORT=true
       - WEBSOCKET_MANAGER=memory
-      # Extended timeouts for search functions and streaming
-      - AIOHTTP_CLIENT_TIMEOUT=900
-      - AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST=30
-      # v0.6.15 specific optimizations
+      # URL for proper redirects (from docs)
       - WEBUI_URL=https://openwebui.australianteamasters.com.au
-      - ENABLE_COMMUNITY_SHARING=false
-      - ENABLE_MESSAGE_RATING=true
-      # Optional: For better performance in production
-      - GLOBAL_LOG_LEVEL=INFO
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
@@ -35,45 +28,14 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      
-      # HTTPS Router with WebSocket support
       - traefik.http.routers.openwebui.rule=Host(`openwebui.australianteamasters.com.au`)
       - traefik.http.routers.openwebui.entrypoints=websecure
       - traefik.http.routers.openwebui.tls.certresolver=letsencrypt
-      - traefik.http.routers.openwebui.service=openwebui
-      - traefik.http.routers.openwebui.middlewares=openwebui-headers
-      
-      # HTTP Router (redirect to HTTPS)
       - traefik.http.routers.openwebui-http.rule=Host(`openwebui.australianteamasters.com.au`)
       - traefik.http.routers.openwebui-http.entrypoints=web
       - traefik.http.routers.openwebui-http.middlewares=redirect-to-https
-      
-      # Service configuration
-      - traefik.http.services.openwebui.loadbalancer.server.port=8080
-      - traefik.http.services.openwebui.loadbalancer.passhostheader=true
-      
-      # Middleware configurations
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-      
-      # Critical WebSocket and streaming headers middleware
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.X-Forwarded-Proto=https
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.X-Forwarded-For=""
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.X-Real-IP=""
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.Host=""
-      
-      # Optional: Security headers
-      - traefik.http.middlewares.openwebui-headers.headers.customresponseheaders.X-Frame-Options=SAMEORIGIN
-      - traefik.http.middlewares.openwebui-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff
-      
-      # CRITICAL: Timeout configuration for streaming responses
-      # This fixes the "Bad Gateway" 502 errors during search/streaming
-      - traefik.http.services.openwebui.loadbalancer.responseforwarding.flushinterval=1ms
-      - traefik.http.services.openwebui.loadbalancer.healthcheck.timeout=10s
-      
-      # Additional streaming optimization
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.Cache-Control=no-cache
-      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.Connection=keep-alive
+      - traefik.http.services.openwebui.loadbalancer.server.port=8080
 
 volumes:
   open-webui: {}
