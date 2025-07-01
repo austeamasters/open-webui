@@ -18,8 +18,10 @@ services:
       # Critical WebSocket support environment variables
       - ENABLE_WEBSOCKET_SUPPORT=true
       - WEBSOCKET_MANAGER=memory
-      # Optional: For better performance in production
+      # Extended timeouts for search functions and streaming
       - AIOHTTP_CLIENT_TIMEOUT=900
+      - AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST=30
+      # Optional: For better performance in production
       - GLOBAL_LOG_LEVEL=INFO
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -59,6 +61,15 @@ services:
       # Optional: Security headers
       - traefik.http.middlewares.openwebui-headers.headers.customresponseheaders.X-Frame-Options=SAMEORIGIN
       - traefik.http.middlewares.openwebui-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff
+      
+      # CRITICAL: Timeout configuration for streaming responses
+      # This fixes the "Bad Gateway" 502 errors during search/streaming
+      - traefik.http.services.openwebui.loadbalancer.responseforwarding.flushinterval=1ms
+      - traefik.http.services.openwebui.loadbalancer.healthcheck.timeout=10s
+      
+      # Additional streaming optimization
+      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.Cache-Control=no-cache
+      - traefik.http.middlewares.openwebui-headers.headers.customrequestheaders.Connection=keep-alive
 
 volumes:
   open-webui: {}
