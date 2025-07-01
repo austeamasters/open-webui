@@ -21,6 +21,10 @@ services:
       # Extended timeouts for search functions and streaming
       - AIOHTTP_CLIENT_TIMEOUT=900
       - AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST=30
+      # v0.6.15 specific optimizations
+      - WEBUI_URL=https://openwebui.australianteamasters.com.au
+      - ENABLE_COMMUNITY_SHARING=false
+      - ENABLE_MESSAGE_RATING=true
       # Optional: For better performance in production
       - GLOBAL_LOG_LEVEL=INFO
     extra_hosts:
